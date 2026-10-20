@@ -1,0 +1,26 @@
+{
+    "inputs": [
+        "A",
+        "B",
+        "C"
+    ],
+    "gates": [
+        {
+            "id": "g1",
+            "type": "AND",
+            "inputs": [
+                "A",
+                "B"
+            ]
+        },
+        {
+            "id": "g2",
+            "type": "OR",
+            "inputs": [
+                "g1",
+                "C"
+            ]
+        }
+    ],
+    "output": "g2"
+}
