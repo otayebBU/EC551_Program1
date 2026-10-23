@@ -1,9 +1,4 @@
 
-"""
-EC551 Logic Synthesis Engine
-Main command-line interface.
-"""
-
 import argparse
 
 from graph_parser import (
@@ -13,6 +8,8 @@ from graph_parser import (
     export_truth_table,
     analyze_circuit,
 )
+
+from boolean_parser import save_expression_graph
 from logic_synthesis import analyze_logic
 from minimizer import minimize_logic
 from verilog_generator import generate_verilog
@@ -23,19 +20,29 @@ def main():
         description="EC551 Logic Synthesis Engine"
     )
 
+   
     parser.add_argument(
         "input",
         nargs="?",
-        default="example_graph.json",
+        default=None,
         help="Input JSON circuit file"
     )
 
+   
+    parser.add_argument(
+        "--expr",
+        type=str,
+        help="Boolean expression, e.g. F = AB + C"
+    )
+
+  
     parser.add_argument(
         "--output",
         default="generated.v",
         help="Generated structural Verilog filename"
     )
 
+   
     parser.add_argument(
         "--csv",
         default="truth_table.csv",
@@ -44,23 +51,62 @@ def main():
 
     args = parser.parse_args()
 
-   
-    circuit = parse_graph(args.input)
-    variables = circuit["inputs"]
+
+    if args.expr is not None:
+
+        if args.input is not None:
+            parser.error(
+                "Use either a JSON input file or --expr, not both."
+            )
+
+        print("\n=== BOOLEAN EXPRESSION INPUT ===")
+        print("Expression:", args.expr)
+
+        # Convert Boolean expression into a gate-level JSON circuit
+        input_file = save_expression_graph(
+            args.expr,
+            "expression_graph.json"
+        )
+
+        print("Converted to circuit:", input_file)
+
+    else:
+
+        input_file = args.input or "example_graph.json"
+
+        print("\n=== DIGITAL LOGIC CIRCUIT INPUT ===")
+        print("Circuit file:", input_file)
 
     
+    circuit = parse_graph(input_file)
+    variables = circuit["inputs"]
+
+    print("\nInput variables:", variables)
+
+    
+
     table = generate_truth_table(circuit)
+
+    # -----------------------------------
+    # STEP 4: Canonical logic analysis
+    # -----------------------------------
 
     analysis = analyze_logic(circuit)
 
- 
+    # -----------------------------------
+    # STEP 5: Minimize Boolean function
+    # -----------------------------------
+
     minimized = minimize_logic(
         variables,
         analysis["on_set"],
         analysis["off_set"]
     )
 
-   
+    # -----------------------------------
+    # STEP 6: Display 12 operations
+    # -----------------------------------
+
     print("\n=== EC551 LOGIC SYNTHESIS ENGINE ===")
 
     print("\n1. Canonical SOP:")
@@ -77,13 +123,17 @@ def main():
 
     print("\n5. Minimized SOP:")
     print(minimized["minimized_sop"])
-    print("Literals saved:",
-          minimized["sop_literals_saved"])
+    print(
+        "Literals saved:",
+        minimized["sop_literals_saved"]
+    )
 
     print("\n6. Minimized POS:")
     print(minimized["minimized_pos"])
-    print("Literals saved:",
-          minimized["pos_literals_saved"])
+    print(
+        "Literals saved:",
+        minimized["pos_literals_saved"]
+    )
 
     print("\n7. Prime Implicants:")
     print(minimized["prime_implicant_count"])
@@ -106,7 +156,8 @@ def main():
     print("\n12. Circuit Analysis:")
     analyze_circuit(circuit)
 
-    
+
+
     print("\n=== VERILOG GENERATION ===")
 
     generate_verilog(
@@ -116,6 +167,8 @@ def main():
     )
 
     print("Structural Verilog saved to:", args.output)
+
+    print("\n=== SYNTHESIS COMPLETE ===")
 
 
 if __name__ == "__main__":
