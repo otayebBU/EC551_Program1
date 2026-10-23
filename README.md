@@ -47,13 +47,13 @@ The program also generates structural Verilog code from the minimized SOP repres
 - AMD Vivado for Verilog synthesis and simulation
 - An FPGA development board for hardware demonstration
 
-The current Python modules use standard-library functionality.
+The Python implementation uses standard-library functionality.
 
 ## 5. How to Run
 
 Open a terminal in the project directory.
 
-Run the main program:
+### Run the Main Program
 
 ```bash
 python main.py
@@ -61,7 +61,7 @@ python main.py
 
 By default, the program reads `example_graph.json` and generates `generated.v` and `truth_table.csv`.
 
-To use a different circuit file:
+### Use a Different Input File
 
 ```bash
 python main.py your_circuit.json
@@ -73,6 +73,39 @@ To customize the output filenames:
 python main.py your_circuit.json --output result.v --csv result.csv
 ```
 
+### Input File Format
+
+The program accepts JSON files describing combinational logic circuits. Each file specifies the primary inputs, logic gates, their connections, and the output node.
+
+For example, the following JSON represents **F = (A AND B) OR C**:
+
+```json
+{
+  "inputs": ["A", "B", "C"],
+  "gates": [
+    {
+      "id": "g1",
+      "type": "AND",
+      "inputs": ["A", "B"]
+    },
+    {
+      "id": "g2",
+      "type": "OR",
+      "inputs": ["g1", "C"]
+    }
+  ],
+  "output": "g2"
+}
+```
+
+Save the circuit description as a `.json` file, then run:
+
+```bash
+python main.py example_graph.json
+```
+
+The program displays Boolean analysis results, generates a truth table, reports circuit metrics, and exports structural Verilog code.
+
 ## 6. Running Tests
 
 Run the automated tests using:
@@ -81,24 +114,28 @@ Run the automated tests using:
 python -m unittest discover -s tests -v
 ```
 
-The current test suite includes constant-zero, constant-one, and example-circuit test cases.
+The current test suite includes three test cases:
+
+- Constant-zero function
+- Constant-one function
+- Example combinational circuit
 
 All three tests passed in our local test run.
 
 ## 7. Vivado Verification
 
-We verified an example structural Verilog circuit implementing:
+We tested the structural Verilog generator using the Boolean function:
 
 **F = (!A & B) | (A & !C)**
 
-Vivado successfully synthesized the circuit into one LUT3.
+The generated Verilog was successfully synthesized in AMD Vivado using one LUT3. Behavioral simulation verified all eight input combinations with zero errors.
 
-Behavioral simulation tested all eight input combinations and completed with zero errors.
+We also successfully ran the integrated Python application and generated a new Verilog file from the example circuit.
 
-This verification demonstrates successful synthesis and simulation of one generated circuit. Physical FPGA board testing is still required for the hardware demonstration.
+This verifies the tested Verilog example and confirms that the integrated application can execute successfully. Further testing on a physical FPGA development board is required for the hardware demonstration.
 
 ## 8. AI Usage Disclosure
 
-ChatGPT was used as a supporting tool to explain technical concepts, assist with debugging, suggest code modifications, and improve documentation.
+ChatGPT was used as a supporting tool to explain technical concepts, assist with writing and modifying selected code sections, troubleshoot errors, and improve documentation.
 
-The team was responsible for developing and integrating the project modules, reviewing and testing the code, and verifying the results. We are prepared to explain the implementation and design decisions during the demonstration.
+The team was responsible for integrating the project modules, reviewing and testing the implementation, and verifying the results. We are prepared to explain the code and design decisions during the demonstration.
